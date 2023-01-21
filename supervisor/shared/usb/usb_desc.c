@@ -106,7 +106,7 @@ static const uint8_t configuration_descriptor_template[] = {
 #define CONFIG_NUM_INTERFACES_INDEX (4)
     0x01,        // 5 bConfigurationValue
     0x00,        // 6 iConfiguration (String Index)
-    0x80,        // 7 bmAttributes
+    0xA0,        // 7 bmAttributes
     0x32,        // 8 bMaxPower 100mA
 };
 

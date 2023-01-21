@@ -246,9 +246,9 @@ bool common_hal_usb_hid_enable(const mp_obj_t devices, uint8_t boot_device) {
 
 bool common_hal_usb_hid_check_suspend(void) {
     if (tud_suspended()) {
-      tud_remote_wakeup();
+        tud_remote_wakeup();
     //   sleep_ms(1000);
-      tusb_init();        
+    //   tusb_init();        
       return 1;
     }
     return 0;

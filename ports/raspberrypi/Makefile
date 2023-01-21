@@ -66,7 +66,7 @@ PIOASM = $(BUILD)/pioasm/pioasm/pioasm
 .PHONY: PioasmBuild
 PioasmBuild: $(PIOASM)
 $(PIOASM):
-	$(Q)cmake -S pioasm -B $(BUILD)/pioasm
+	$(Q)$(CMAKE) -S pioasm -B $(BUILD)/pioasm
 	$(Q)$(MAKE) -C $(BUILD)/pioasm PioasmBuild
 
 $(BUILD)/cyw43_bus_pio_spi.pio.h: sdk/src/rp2_common/cyw43_driver/cyw43_bus_pio_spi.pio $(PIOASM)

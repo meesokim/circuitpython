@@ -86,9 +86,7 @@ MP_WEAK void post_usb_init(void) {
 
 void usb_init(void) {
     init_usb_hardware();
-
     tusb_init();
-
     post_usb_init();
 
     #if MICROPY_KBD_EXCEPTION && CIRCUITPY_USB_CDC
@@ -258,34 +256,50 @@ void tud_umount_cb(void) {
 // remote_wakeup_en : if host allows us to perform remote wakeup
 // USB Specs: Within 7ms, device must draw an average current less than 2.5 mA from bus
 void tud_suspend_cb(bool remote_wakeup_en) {
+    (void) remote_wakeup_en;
 }
 
 // Invoked when usb bus is resumed
 void tud_resume_cb(void) {
+
 }
 
 // Invoked when cdc when line state changed e.g connected/disconnected
 // Use to reset to DFU when disconnect with 1200 bps
-void tud_cdc_line_state_cb(uint8_t itf, bool dtr, bool rts) {
-    (void)itf;  // interface ID, not used
+// void tud_cdc_line_state_cb(uint8_t itf, bool dtr, bool rts) {
+//     (void)itf;  // interface ID, not used
 
-    // DTR = false is counted as disconnected
-    if (!dtr) {
-        cdc_line_coding_t coding;
-        // Use whichever CDC is itf 0.
-        tud_cdc_get_line_coding(&coding);
+//     // DTR = false is counted as disconnected
+//     if (!dtr) {
+//         cdc_line_coding_t coding;
+//         // Use whichever CDC is itf 0.
+//         tud_cdc_get_line_coding(&coding);
 
-        if (coding.bit_rate == 1200) {
-            reset_to_bootloader();
-        }
-    } else {
-        #if CIRCUITPY_STATUS_BAR
-        // We are connected, let's request a title bar update.
-        supervisor_status_bar_request_update(true);
-        #endif
-    }
+//         if (coding.bit_rate == 1200) {
+//             reset_to_bootloader();
+//         }
+//     } else {
+//         #if CIRCUITPY_STATUS_BAR
+//         // We are connected, let's request a title bar update.
+//         supervisor_status_bar_request_update(true);
+//         #endif
+//     }
+// }
+// Invoked when sent REPORT successfully to host
+// Application can use this to send the next report
+// Note: For composite reports, report[0] is report ID
+void tud_hid_report_complete_cb(uint8_t instance, uint8_t const* report, uint8_t len)
+{
+  (void) instance;
+  (void) len;
+
+//   uint8_t next_report_id = report[0] + 1;
+
+//   if (next_report_id < REPORT_ID_COUNT)
+//   {
+//     tud_hid_keyboard_report(next_report_id, 0, NULL);
+//   }
 }
-
 #if CIRCUITPY_USB_VENDOR
 // --------------------------------------------------------------------+
 // WebUSB use vendor class
