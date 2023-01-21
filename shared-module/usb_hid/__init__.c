@@ -147,6 +147,10 @@ uint8_t usb_hid_boot_device(void) {
     return hid_boot_device;
 }
 
+// bool usb_hid_check_suspend(void) {
+//     return common_hal_usb_hid_check_suspend();
+// }
+
 // Returns 1 or 2 if host requested a boot device and boot protocol was enabled in the interface descriptor.
 uint8_t common_hal_usb_hid_get_boot_device(void) {
     return hid_boot_device_requested ? hid_boot_device : 0;
@@ -237,6 +241,17 @@ bool common_hal_usb_hid_enable(const mp_obj_t devices, uint8_t boot_device) {
     usb_hid_set_devices_from_hid_devices();
 
     return true;
+}
+
+
+bool common_hal_usb_hid_check_suspend(void) {
+    if (tud_suspended()) {
+      tud_remote_wakeup();
+    //   sleep_ms(1000);
+      tusb_init();        
+      return 1;
+    }
+    return 0;
 }
 
 // Called when HID devices are ready to be used, when code.py or the REPL starts running.

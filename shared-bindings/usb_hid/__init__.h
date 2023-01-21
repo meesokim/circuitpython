@@ -38,5 +38,5 @@ void usb_hid_set_devices(mp_obj_t devices);
 bool common_hal_usb_hid_disable(void);
 bool common_hal_usb_hid_enable(const mp_obj_t devices_seq, uint8_t boot_device);
 uint8_t common_hal_usb_hid_get_boot_device(void);
-
+bool common_hal_usb_hid_check_suspend(void);
 #endif // SHARED_BINDINGS_USB_HID_H

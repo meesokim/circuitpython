@@ -41,6 +41,7 @@ size_t usb_hid_descriptor_length(void);
 size_t usb_hid_report_descriptor_length(void);
 
 void usb_hid_setup_devices(void);
+// bool usb_hid_check_suspend(void);
 size_t usb_hid_report_descriptor_length(void);
 void usb_hid_build_report_descriptor(uint8_t *report_descriptor_space, size_t report_descriptor_length);
 void usb_hid_save_report_descriptor(uint8_t *report_descriptor_space, size_t report_descriptor_length);

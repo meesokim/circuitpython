@@ -58,9 +58,14 @@ MP_DECLARE_CONST_FUN_OBJ_0(board_uart_obj);
         return common_hal_board_create_##bus(instance); \
     } \
     MP_DEFINE_CONST_FUN_OBJ_0(board_##name##_obj, board_##name);
-
+extern mp_obj_t get_bootsel_button(void);
+MP_DECLARE_CONST_FUN_OBJ_0(get_bootsel_button_obj);
 #define CIRCUITPYTHON_BOARD_DICT_STANDARD_ITEMS \
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_board) }, \
     { MP_ROM_QSTR(MP_QSTR_board_id), MP_ROM_PTR(&board_module_id_obj) },
-
+#ifdef CIRCUITPYTHON_PICO_BOOTSEL_BUTTON
+#undef CIRCUITPYTHON_PICO_BOOTSEL_BUTTON
+#define CIRCUITPYTHON_PICO_BOOTSEL_BUTTON \
+    { MP_ROM_QSTR(MP_QSTR_get_bootsel_button), MP_ROM_PTR(&get_bootsel_button_obj) },
+#endif 
 #endif  // MICROPY_INCLUDED_SHARED_BINDINGS_BOARD___INIT___H

@@ -156,6 +156,11 @@ STATIC mp_obj_t usb_hid_get_boot_device(void) {
 }
 MP_DEFINE_CONST_FUN_OBJ_0(usb_hid_get_boot_device_obj, usb_hid_get_boot_device);
 
+STATIC mp_obj_t usb_hid_check_suspend(void) {
+    return mp_obj_new_bool(common_hal_usb_hid_check_suspend());
+}
+MP_DEFINE_CONST_FUN_OBJ_0(usb_hid_check_suspend_obj, usb_hid_check_suspend);
+
 // usb_hid.devices is set once the usb devices are determined, after boot.py runs.
 STATIC mp_map_elem_t usb_hid_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__),        MP_OBJ_NEW_QSTR(MP_QSTR_usb_hid) },
@@ -164,6 +169,7 @@ STATIC mp_map_elem_t usb_hid_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_disable),         MP_OBJ_FROM_PTR(&usb_hid_disable_obj) },
     { MP_ROM_QSTR(MP_QSTR_enable),          MP_OBJ_FROM_PTR(&usb_hid_enable_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_boot_device), MP_OBJ_FROM_PTR(&usb_hid_get_boot_device_obj) },
+    { MP_ROM_QSTR(MP_QSTR_check_suspend), MP_OBJ_FROM_PTR(&usb_hid_check_suspend_obj) },
 };
 
 STATIC MP_DEFINE_MUTABLE_DICT(usb_hid_module_globals, usb_hid_module_globals_table);
