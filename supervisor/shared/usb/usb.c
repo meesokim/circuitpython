@@ -266,25 +266,25 @@ void tud_resume_cb(void) {
 
 // Invoked when cdc when line state changed e.g connected/disconnected
 // Use to reset to DFU when disconnect with 1200 bps
-// void tud_cdc_line_state_cb(uint8_t itf, bool dtr, bool rts) {
-//     (void)itf;  // interface ID, not used
+void tud_cdc_line_state_cb(uint8_t itf, bool dtr, bool rts) {
+    (void)itf;  // interface ID, not used
 
-//     // DTR = false is counted as disconnected
-//     if (!dtr) {
-//         cdc_line_coding_t coding;
-//         // Use whichever CDC is itf 0.
-//         tud_cdc_get_line_coding(&coding);
+    // DTR = false is counted as disconnected
+    if (!dtr) {
+        cdc_line_coding_t coding;
+        // Use whichever CDC is itf 0.
+        tud_cdc_get_line_coding(&coding);
 
-//         if (coding.bit_rate == 1200) {
-//             reset_to_bootloader();
-//         }
-//     } else {
-//         #if CIRCUITPY_STATUS_BAR
-//         // We are connected, let's request a title bar update.
-//         supervisor_status_bar_request_update(true);
-//         #endif
-//     }
-// }
+        if (coding.bit_rate == 1200) {
+            reset_to_bootloader();
+        }
+    } else {
+        #if CIRCUITPY_STATUS_BAR
+        // We are connected, let's request a title bar update.
+        supervisor_status_bar_request_update(true);
+        #endif
+    }
+}
 // Invoked when sent REPORT successfully to host
 // Application can use this to send the next report
 // Note: For composite reports, report[0] is report ID
