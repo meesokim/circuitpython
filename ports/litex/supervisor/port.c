@@ -71,7 +71,7 @@ safe_mode_t port_init(void) {
     irq_setmask(0);
     irq_setie(1);
     tick_init();
-    return NO_SAFE_MODE;
+    return SAFE_MODE_NONE;
 }
 
 extern uint32_t _ebss;
@@ -101,20 +101,19 @@ void reset_cpu(void) {
     for (;;) {}
 }
 
-bool port_has_fixed_stack(void) {
-    return false;
-}
-
 uint32_t *port_heap_get_bottom(void) {
-    return port_stack_get_limit();
+    return &_ebss;
 }
 
 uint32_t *port_heap_get_top(void) {
-    return port_stack_get_top();
+    return port_stack_get_limit();
 }
 
 uint32_t *port_stack_get_limit(void) {
-    return &_ebss;
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Warray-bounds"
+    return port_stack_get_top() - (CIRCUITPY_DEFAULT_STACK_SIZE + CIRCUITPY_EXCEPTION_STACK_SIZE) / sizeof(uint32_t);
+    #pragma GCC diagnostic pop
 }
 
 uint32_t *port_stack_get_top(void) {

@@ -32,6 +32,7 @@
 
 #include "shared-bindings/supervisor/RunReason.h"
 #include "shared-bindings/supervisor/Runtime.h"
+#include "shared-bindings/supervisor/SafeModeReason.h"
 
 #include "supervisor/shared/reload.h"
 #include "supervisor/shared/stack.h"
@@ -106,7 +107,7 @@ void supervisor_set_run_reason(supervisor_run_reason_t run_reason) {
 }
 
 //|     run_reason: RunReason
-//|     """Why CircuitPython started running this particular time."""
+//|     """Why CircuitPython started running this particular time (read-only)."""
 STATIC mp_obj_t supervisor_runtime_get_run_reason(mp_obj_t self) {
     return cp_enum_find(&supervisor_run_reason_type, _run_reason);
 }
@@ -114,6 +115,23 @@ MP_DEFINE_CONST_FUN_OBJ_1(supervisor_runtime_get_run_reason_obj, supervisor_runt
 
 MP_PROPERTY_GETTER(supervisor_runtime_run_reason_obj,
     (mp_obj_t)&supervisor_runtime_get_run_reason_obj);
+
+//|     safe_mode_reason: SafeModeReason
+//|     """Why CircuitPython went into safe mode this particular time (read-only).
+//|
+//|     **Limitations**: Raises ``NotImplementedError`` on builds that do not implement ``safemode.py``.
+//|     """
+STATIC mp_obj_t supervisor_runtime_get_safe_mode_reason(mp_obj_t self) {
+    #if CIRCUITPY_SAFEMODE_PY
+    return cp_enum_find(&supervisor_safe_mode_reason_type, get_safe_mode());
+    #else
+    mp_raise_NotImplementedError(NULL);
+    #endif
+}
+MP_DEFINE_CONST_FUN_OBJ_1(supervisor_runtime_get_safe_mode_reason_obj, supervisor_runtime_get_safe_mode_reason);
+
+MP_PROPERTY_GETTER(supervisor_runtime_safe_mode_reason_obj,
+    (mp_obj_t)&supervisor_runtime_get_safe_mode_reason_obj);
 
 //|     autoreload: bool
 //|     """Whether CircuitPython may autoreload based on workflow writes to the filesystem."""
@@ -168,26 +186,6 @@ MP_PROPERTY_GETSET(supervisor_runtime_ble_workflow_obj,
     (mp_obj_t)&supervisor_runtime_get_ble_workflow_obj,
     (mp_obj_t)&supervisor_runtime_set_ble_workflow_obj);
 
-//|     next_stack_limit: int
-//|     """The size of the stack for the next vm run. If its too large, the default will be used."""
-//|
-STATIC mp_obj_t supervisor_runtime_get_next_stack_limit(mp_obj_t self) {
-    return mp_obj_new_int(get_next_stack_size());
-}
-MP_DEFINE_CONST_FUN_OBJ_1(supervisor_runtime_get_next_stack_limit_obj, supervisor_runtime_get_next_stack_limit);
-
-STATIC mp_obj_t supervisor_runtime_set_next_stack_limit(mp_obj_t self, mp_obj_t size_obj) {
-    mp_int_t size = mp_obj_get_int(size_obj);
-    mp_arg_validate_int_min(size, 256, MP_QSTR_size);
-    set_next_stack_size(size);
-    return mp_const_none;
-}
-MP_DEFINE_CONST_FUN_OBJ_2(supervisor_runtime_set_next_stack_limit_obj, supervisor_runtime_set_next_stack_limit);
-
-MP_PROPERTY_GETSET(supervisor_runtime_next_stack_limit_obj,
-    (mp_obj_t)&supervisor_runtime_get_next_stack_limit_obj,
-    (mp_obj_t)&supervisor_runtime_set_next_stack_limit_obj);
-
 //|     rgb_status_brightness: int
 //|     """Set brightness of status RGB LED from 0-255. This will take effect
 //|     after the current code finishes and the status LED is used to show
@@ -218,16 +216,17 @@ STATIC const mp_rom_map_elem_t supervisor_runtime_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_serial_connected), MP_ROM_PTR(&supervisor_runtime_serial_connected_obj) },
     { MP_ROM_QSTR(MP_QSTR_serial_bytes_available), MP_ROM_PTR(&supervisor_runtime_serial_bytes_available_obj) },
     { MP_ROM_QSTR(MP_QSTR_run_reason), MP_ROM_PTR(&supervisor_runtime_run_reason_obj) },
+    { MP_ROM_QSTR(MP_QSTR_safe_mode_reason), MP_ROM_PTR(&supervisor_runtime_safe_mode_reason_obj) },
     { MP_ROM_QSTR(MP_QSTR_autoreload), MP_ROM_PTR(&supervisor_runtime_autoreload_obj) },
     { MP_ROM_QSTR(MP_QSTR_ble_workflow),  MP_ROM_PTR(&supervisor_runtime_ble_workflow_obj) },
-    { MP_ROM_QSTR(MP_QSTR_next_stack_limit),  MP_ROM_PTR(&supervisor_runtime_next_stack_limit_obj) },
     { MP_ROM_QSTR(MP_QSTR_rgb_status_brightness),  MP_ROM_PTR(&supervisor_runtime_rgb_status_brightness_obj) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(supervisor_runtime_locals_dict, supervisor_runtime_locals_dict_table);
 
-const mp_obj_type_t supervisor_runtime_type = {
-    .base = { &mp_type_type },
-    .name = MP_QSTR_Runtime,
-    .locals_dict = (mp_obj_dict_t *)&supervisor_runtime_locals_dict,
-};
+MP_DEFINE_CONST_OBJ_TYPE(
+    supervisor_runtime_type,
+    MP_QSTR_Runtime,
+    MP_TYPE_FLAG_HAS_SPECIAL_ACCESSORS,
+    locals_dict, &supervisor_runtime_locals_dict
+    );

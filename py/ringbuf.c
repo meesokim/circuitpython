@@ -5,6 +5,7 @@
  *
  * Copyright (c) 2016 Paul Sokolovsky
  * Copyright (c) 2019 Jim Mussared
+ * Copyright (c) 2020 Dan Halbert for Adafruit Industries LLC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +26,8 @@
  * THE SOFTWARE.
  */
 
+// CIRCUITPY-CHANGE: thoroughly reworked
+
 #include "ringbuf.h"
 
 bool ringbuf_init(ringbuf_t *r, uint8_t *buf, size_t size) {
@@ -37,8 +40,8 @@ bool ringbuf_init(ringbuf_t *r, uint8_t *buf, size_t size) {
 }
 
 // Dynamic initialization. This should be accessible from a root pointer..
-bool ringbuf_alloc(ringbuf_t *r, size_t size, bool long_lived) {
-    bool result = ringbuf_init(r, gc_alloc(size, false, long_lived), size);
+bool ringbuf_alloc(ringbuf_t *r, size_t size) {
+    bool result = ringbuf_init(r, m_malloc(size), size);
     return result;
 }
 
@@ -72,7 +75,6 @@ int ringbuf_get16(ringbuf_t *r) {
     if (r->used < 2) {
         return -1;
     }
-
     int high_byte = ringbuf_get(r);
     int low_byte = ringbuf_get(r);
     return (high_byte << 8) | low_byte;
@@ -89,6 +91,15 @@ int ringbuf_put(ringbuf_t *r, uint8_t v) {
         r->next_write = 0;
     }
     r->used++;
+    return 0;
+}
+
+int ringbuf_put16(ringbuf_t *r, uint16_t v) {
+    if (r->size - r->used < 2) {
+        return -1;
+    }
+    ringbuf_put(r, (v >> 8) & 0xff);
+    ringbuf_put(r, v & 0xff);
     return 0;
 }
 
@@ -131,14 +142,4 @@ size_t ringbuf_get_n(ringbuf_t *r, uint8_t *buf, size_t bufsize) {
         buf[i] = b;
     }
     return bufsize;
-}
-
-int ringbuf_put16(ringbuf_t *r, uint16_t v) {
-    if (r->size - r->used < 2) {
-        return -1;
-    }
-
-    ringbuf_put(r, (v >> 8) & 0xff);
-    ringbuf_put(r, v & 0xff);
-    return 0;
 }

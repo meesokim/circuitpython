@@ -32,6 +32,7 @@
 #include "shared-bindings/uheap/__init__.h"
 
 //| """Heap size analysis"""
+//|
 
 //| def info(object: object) -> int:
 //|     """Prints memory debugging info for the given object and returns the
@@ -57,4 +58,4 @@ const mp_obj_module_t uheap_module = {
     .globals = (mp_obj_dict_t *)&uheap_module_globals,
 };
 
-MP_REGISTER_MODULE(MP_QSTR_uheap, uheap_module, CIRCUITPY_UHEAP);
+MP_REGISTER_MODULE(MP_QSTR_uheap, uheap_module);

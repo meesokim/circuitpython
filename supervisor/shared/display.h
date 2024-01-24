@@ -54,7 +54,6 @@ extern displayio_tilegrid_t supervisor_blinka_sprite;
 
 void supervisor_start_terminal(uint16_t width_px, uint16_t height_px);
 void supervisor_stop_terminal(void);
-
-void supervisor_display_move_memory(void);
+bool supervisor_terminal_started(void);
 
 #endif  // MICROPY_INCLUDED_SUPERVISOR_SHARED_DISPLAY_H

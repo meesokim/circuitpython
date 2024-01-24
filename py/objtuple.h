@@ -3,7 +3,7 @@
  *
  * The MIT License (MIT)
  *
- * SPDX-FileCopyrightText: Copyright (c) 2013, 2014 Damien P. George
+ * Copyright (c) 2013, 2014 Damien P. George
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -49,6 +49,10 @@ mp_obj_t mp_obj_tuple_subscr(mp_obj_t base, mp_obj_t index, mp_obj_t value);
 mp_obj_t mp_obj_tuple_getiter(mp_obj_t o_in, mp_obj_iter_buf_t *iter_buf);
 
 extern const mp_obj_type_t mp_type_attrtuple;
+
+// CIRCUITPY-CHANGE
+// Relies on gcc Variadic Macros and Statement Expressions
+#define MP_OBJ_NEW_TUPLE(...) ({mp_obj_t _z[] = {__VA_ARGS__}; mp_obj_new_tuple(MP_ARRAY_SIZE(_z), _z);})
 
 #define MP_DEFINE_ATTRTUPLE(tuple_obj_name, fields, nitems, ...) \
     const mp_rom_obj_tuple_t tuple_obj_name = { \

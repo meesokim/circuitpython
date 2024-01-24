@@ -54,6 +54,8 @@
 #include "lwip/timeouts.h"
 #include "lwip/udp.h"
 
+#include "sdk/src/rp2_common/pico_cyw43_arch/include/pico/cyw43_arch.h"
+
 #define MICROPY_PY_LWIP_SOCK_RAW (1)
 
 #if 0 // print debugging info
@@ -661,6 +663,7 @@ STATIC void mark_user_socket(socketpool_socket_obj_t *obj) {
 
 bool socketpool_socket(socketpool_socketpool_obj_t *self,
     socketpool_socketpool_addressfamily_t family, socketpool_socketpool_sock_t type,
+    int proto,
     socketpool_socket_obj_t *socket) {
 
     if (!register_open_socket(socket)) {
@@ -690,7 +693,7 @@ bool socketpool_socket(socketpool_socketpool_obj_t *self,
             break;
         #if MICROPY_PY_LWIP_SOCK_RAW
         case SOCKETPOOL_SOCK_RAW: {
-            socket->pcb.raw = raw_new(0);
+            socket->pcb.raw = raw_new(proto);
             break;
         }
         #endif
@@ -706,8 +709,6 @@ bool socketpool_socket(socketpool_socketpool_obj_t *self,
         case MOD_NETWORK_SOCK_STREAM: {
             // Register the socket object as our callback argument.
             tcp_arg(socket->pcb.tcp, (void *)socket);
-            // Register our error callback.
-            tcp_err(socket->pcb.tcp, _lwip_tcp_error);
             break;
         }
         case MOD_NETWORK_SOCK_DGRAM: {
@@ -730,17 +731,16 @@ bool socketpool_socket(socketpool_socketpool_obj_t *self,
 }
 
 socketpool_socket_obj_t *common_hal_socketpool_socket(socketpool_socketpool_obj_t *self,
-    socketpool_socketpool_addressfamily_t family, socketpool_socketpool_sock_t type) {
+    socketpool_socketpool_addressfamily_t family, socketpool_socketpool_sock_t type, int proto) {
     if (family != SOCKETPOOL_AF_INET) {
-        mp_raise_NotImplementedError(translate("Only IPv4 sockets supported"));
+        mp_raise_NotImplementedError(MP_ERROR_TEXT("Only IPv4 sockets supported"));
     }
 
-    // we must allocate sockets long-lived because we depend on their object-identity
-    socketpool_socket_obj_t *socket = m_new_ll_obj_with_finaliser(socketpool_socket_obj_t);
+    socketpool_socket_obj_t *socket = m_new_obj_with_finaliser(socketpool_socket_obj_t);
     socket->base.type = &socketpool_socket_type;
 
-    if (!socketpool_socket(self, family, type, socket)) {
-        mp_raise_RuntimeError(translate("Out of sockets"));
+    if (!socketpool_socket(self, family, type, proto, socket)) {
+        mp_raise_RuntimeError(MP_ERROR_TEXT("Out of sockets"));
     }
     mark_user_socket(socket);
     return socket;
@@ -857,7 +857,7 @@ socketpool_socket_obj_t *common_hal_socketpool_socket_accept(socketpool_socket_o
         DEBUG_printf("collecting garbage to open socket\n");
         gc_collect();
         if (!register_open_socket(accepted)) {
-            mp_raise_RuntimeError(translate("Out of sockets"));
+            mp_raise_RuntimeError(MP_ERROR_TEXT("Out of sockets"));
         }
     }
     mark_user_socket(accepted);
@@ -916,10 +916,11 @@ void socketpool_socket_close(socketpool_socket_obj_t *socket) {
         case SOCKETPOOL_SOCK_STREAM: {
             // Deregister callback (pcb.tcp is set to NULL below so must deregister now)
             tcp_arg(socket->pcb.tcp, NULL);
-            tcp_err(socket->pcb.tcp, NULL);
-            tcp_recv(socket->pcb.tcp, NULL);
 
             if (socket->pcb.tcp->state != LISTEN) {
+                tcp_err(socket->pcb.tcp, NULL);
+                tcp_recv(socket->pcb.tcp, NULL);
+
                 // Schedule a callback to abort the connection if it's not cleanly closed after
                 // the given timeout.  The callback must be set before calling tcp_close since
                 // the latter may free the pcb; if it doesn't then the callback will be active.
@@ -977,6 +978,7 @@ void common_hal_socketpool_socket_connect(socketpool_socket_obj_t *socket,
             // Register our receive callback.
             MICROPY_PY_LWIP_ENTER
             tcp_recv(socket->pcb.tcp, _lwip_tcp_recv);
+            tcp_err(socket->pcb.tcp, _lwip_tcp_error);
             socket->state = STATE_CONNECTING;
             err = tcp_connect(socket->pcb.tcp, &dest, port, _lwip_tcp_connected);
             if (err != ERR_OK) {

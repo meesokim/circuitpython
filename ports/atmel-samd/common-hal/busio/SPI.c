@@ -33,7 +33,6 @@
 #include "peripheral_clk_config.h"
 
 #include "supervisor/board.h"
-#include "supervisor/shared/translate/translate.h"
 #include "common-hal/busio/__init__.h"
 
 #include "hal/include/hal_gpio.h"
@@ -59,7 +58,7 @@ void common_hal_busio_spi_construct(busio_spi_obj_t *self,
     uint8_t dopo = 255;
 
     if (half_duplex) {
-        mp_raise_NotImplementedError(translate("Half duplex SPI is not implemented"));
+        mp_raise_NotImplementedError_varg(MP_ERROR_TEXT("%q"), MP_QSTR_half_duplex);
     }
 
     // Ensure the object starts in its deinit state.
@@ -268,7 +267,21 @@ bool common_hal_busio_spi_write(busio_spi_obj_t *self,
     }
     int32_t status;
     if (len >= 16) {
-        status = sercom_dma_write(self->spi_desc.dev.prvt, data, len);
+        size_t bytes_remaining = len;
+
+        // Maximum DMA transfer is 65535
+        while (1) {
+            size_t to_send = (bytes_remaining > 65535) ? 65535 : bytes_remaining;
+            status = sercom_dma_write(self->spi_desc.dev.prvt, data + (len - bytes_remaining), to_send);
+            bytes_remaining -= to_send;
+            if (bytes_remaining > 0) {
+                // Multi-part transfer; let other things run before doing the next chunk.
+                RUN_BACKGROUND_TASKS;
+            } else {
+                // All done.
+                break;
+            }
+        }
     } else {
         struct io_descriptor *spi_io;
         spi_m_sync_get_io_descriptor(&self->spi_desc, &spi_io);

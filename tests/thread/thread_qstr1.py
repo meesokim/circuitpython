@@ -4,11 +4,9 @@
 #
 # SPDX-License-Identifier: MIT
 
-try:
-    import utime as time
-except ImportError:
-    import time
+import time
 import _thread
+
 
 # function to check the interned string
 def check(s, val):

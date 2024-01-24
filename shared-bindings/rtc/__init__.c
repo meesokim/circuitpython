@@ -36,6 +36,7 @@
 //| The `rtc` module provides support for a Real Time Clock. You can access and manage the
 //| RTC using :class:`rtc.RTC`. It also backs the :func:`time.time` and :func:`time.localtime`
 //| functions using the onboard RTC if present."""
+//|
 
 void rtc_reset(void) {
     MP_STATE_VM(rtc_time_source) = (mp_obj_t)&rtc_rtc_obj;
@@ -86,4 +87,6 @@ const mp_obj_module_t rtc_module = {
     .globals = (mp_obj_dict_t *)&rtc_module_globals,
 };
 
-MP_REGISTER_MODULE(MP_QSTR_rtc, rtc_module, CIRCUITPY_RTC);
+MP_REGISTER_ROOT_POINTER(mp_obj_t rtc_time_source);
+
+MP_REGISTER_MODULE(MP_QSTR_rtc, rtc_module);

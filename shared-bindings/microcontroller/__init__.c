@@ -39,8 +39,6 @@
 #include "shared-bindings/microcontroller/Pin.h"
 #include "shared-bindings/microcontroller/Processor.h"
 
-#include "supervisor/shared/translate/translate.h"
-
 //| """Pin references and cpu functionality
 //|
 //| The `microcontroller` module defines the pins and other bare-metal hardware
@@ -60,6 +58,7 @@
 //| """CPU information and control, such as ``cpus[0].temperature`` and ``cpus[1].frequency``
 //| (clock frequency) on chips with more than 1 cpu. The index selects which cpu.
 //| This object is an instance of `microcontroller.Processor`."""
+//|
 
 //| def delay_us(delay: int) -> None:
 //|     """Dedicated delay method used for very short delays. **Do not** do long delays
@@ -191,4 +190,4 @@ const mp_obj_module_t microcontroller_module = {
     .globals = (mp_obj_dict_t *)&mcu_module_globals,
 };
 
-MP_REGISTER_MODULE(MP_QSTR_microcontroller, microcontroller_module, CIRCUITPY_MICROCONTROLLER);
+MP_REGISTER_MODULE(MP_QSTR_microcontroller, microcontroller_module);

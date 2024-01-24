@@ -25,7 +25,6 @@
  */
 
 #include "py/obj.h"
-#include "py/objproperty.h"
 #include "py/runtime.h"
 #include "py/objarray.h"
 
@@ -57,8 +56,7 @@ STATIC mp_obj_t is31fl3741_IS31FL3741_make_new(const mp_obj_type_t *type, size_t
 
     mp_obj_t i2c = mp_arg_validate_type(args[ARG_i2c].u_obj, &busio_i2c_type, MP_QSTR_i2c_bus);
 
-    is31fl3741_IS31FL3741_obj_t *self = m_new_obj(is31fl3741_IS31FL3741_obj_t);
-    self->base.type = &is31fl3741_IS31FL3741_type;
+    is31fl3741_IS31FL3741_obj_t *self = mp_obj_malloc(is31fl3741_IS31FL3741_obj_t, &is31fl3741_IS31FL3741_type);
 
     common_hal_is31fl3741_IS31FL3741_construct(self,
         MP_OBJ_TO_PTR(i2c),
@@ -141,13 +139,14 @@ MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(is31fl3741_IS31FL3741_set_led_obj, 4, 4, is3
 //|     """Write buf out on the I2C bus to the IS31FL3741.
 //|
 //|     :param ~Tuple[int, ...] mapping: map the pixels in the buffer to the order addressed by the driver chip
-//|     :param ~_typing.ReadableBuffer buf: The bytes to clock out. No assumption is made about color order"""
+//|     :param ~_typing.ReadableBuffer buf: The bytes to clock out. No assumption is made about color order
+//|     """
 //|     ...
 //|
 STATIC mp_obj_t is31fl3741_IS31FL3741_write(mp_obj_t self_in, mp_obj_t mapping, mp_obj_t buffer) {
     is31fl3741_IS31FL3741_obj_t *self = MP_OBJ_TO_PTR(self_in);
     if (!mp_obj_is_tuple_compatible(mapping)) {
-        mp_raise_ValueError(translate("Mapping must be a tuple"));
+        mp_raise_ValueError(MP_ERROR_TEXT("Mapping must be a tuple"));
     }
 
     mp_obj_t *map_items;
@@ -172,9 +171,10 @@ STATIC const mp_rom_map_elem_t is31fl3741_IS31FL3741_locals_dict_table[] = {
 };
 STATIC MP_DEFINE_CONST_DICT(is31fl3741_IS31FL3741_locals_dict, is31fl3741_IS31FL3741_locals_dict_table);
 
-const mp_obj_type_t is31fl3741_IS31FL3741_type = {
-    { &mp_type_type },
-    .name = MP_QSTR_is31fl3741,
-    .locals_dict = (mp_obj_dict_t *)&is31fl3741_IS31FL3741_locals_dict,
-    .make_new = is31fl3741_IS31FL3741_make_new,
-};
+MP_DEFINE_CONST_OBJ_TYPE(
+    is31fl3741_IS31FL3741_type,
+    MP_QSTR_is31fl3741,
+    MP_TYPE_FLAG_NONE,
+    locals_dict, &is31fl3741_IS31FL3741_locals_dict,
+    make_new, is31fl3741_IS31FL3741_make_new
+    );

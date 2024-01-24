@@ -34,9 +34,12 @@
 #include "nvs_flash.h"
 #include "components/heap/include/esp_heap_caps.h"
 
+//| import builtins
+//|
 //| """Direct access to a few ESP-IDF details. This module *should not* include any functionality
 //|    that could be implemented by other frameworks. It should only include ESP-IDF specific
 //|    things."""
+//|
 
 //| def heap_caps_get_total_size() -> int:
 //|     """Return the total size of the ESP-IDF, which includes the CircuitPython heap."""
@@ -72,7 +75,8 @@ MP_DEFINE_CONST_FUN_OBJ_0(espidf_heap_caps_get_largest_free_block_obj, espidf_he
 //|     """Erase all data in the non-volatile storage (nvs), including data stored by with `microcontroller.nvm`
 //|
 //|     This is necessary when upgrading from CircuitPython 6.3.0 or earlier to CircuitPython 7.0.0, because the
-//|     layout of data in nvs has changed. The old data will be lost when you perform this operation."""
+//|     layout of data in nvs has changed. The old data will be lost when you perform this operation.
+//|     """
 //|
 STATIC mp_obj_t espidf_erase_nvs(void) {
     ESP_ERROR_CHECK(nvs_flash_deinit());
@@ -93,20 +97,25 @@ STATIC void espidf_exception_print(const mp_print_t *print, mp_obj_t o_in, mp_pr
     mp_obj_exception_print(print, o_in, kind);
 }
 
-const mp_obj_type_t mp_type_espidf_IDFError = {
-    { &mp_type_type },
-    .name = MP_QSTR_IDFError,
-    .print = espidf_exception_print,
-    .make_new = mp_obj_exception_make_new,
-    .attr = mp_obj_exception_attr,
-    .parent = &mp_type_OSError,
-};
-
-
-//| import builtins
+//| class IDFError(builtins.OSError):
+//|     """Raised when an ``ESP-IDF`` function returns an error code.
+//|     `esp_err_t <https://docs.espressif.com/projects/esp-idf/en/release-v4.4/esp32/api-reference/error-codes.html>`_
+//|     """
 //|
+//|     ...
+//|
+MP_DEFINE_CONST_OBJ_TYPE(
+    mp_type_espidf_IDFError,
+    MP_QSTR_IDFError,
+    MP_TYPE_FLAG_NONE,
+    print, espidf_exception_print,
+    make_new, mp_obj_exception_make_new,
+    attr, mp_obj_exception_attr,
+    parent, &mp_type_OSError
+    );
+
 //| class MemoryError(builtins.MemoryError):
-//|     """Raised when an ESP IDF memory allocation fails."""
+//|     """Raised when an ``ESP-IDF`` memory allocation fails."""
 //|
 //|     ...
 //|
@@ -114,14 +123,15 @@ NORETURN void mp_raise_espidf_MemoryError(void) {
     nlr_raise(mp_obj_new_exception(&mp_type_espidf_MemoryError));
 }
 
-const mp_obj_type_t mp_type_espidf_MemoryError = {
-    { &mp_type_type },
-    .name = MP_QSTR_MemoryError,
-    .print = espidf_exception_print,
-    .make_new = mp_obj_exception_make_new,
-    .attr = mp_obj_exception_attr,
-    .parent = &mp_type_MemoryError,
-};
+MP_DEFINE_CONST_OBJ_TYPE(
+    mp_type_espidf_MemoryError,
+    MP_QSTR_MemoryError,
+    MP_TYPE_FLAG_NONE,
+    print, espidf_exception_print,
+    make_new, mp_obj_exception_make_new,
+    attr, mp_obj_exception_attr,
+    parent, &mp_type_MemoryError
+    );
 
 //| def get_total_psram() -> int:
 //|     """Returns the number of bytes of psram detected, or 0 if psram is not present or not configured"""
@@ -130,14 +140,6 @@ STATIC mp_obj_t espidf_get_total_psram(void) {
     return MP_OBJ_NEW_SMALL_INT(common_hal_espidf_get_total_psram());
 }
 MP_DEFINE_CONST_FUN_OBJ_0(espidf_get_total_psram_obj, espidf_get_total_psram);
-
-//| def get_reserved_psram() -> int:
-//|     """Returns number of bytes of psram reserved for use by esp-idf, either a board-specific default value or the value defined in ``settings.toml``."""
-//|
-STATIC mp_obj_t espidf_get_reserved_psram(void) {
-    return MP_OBJ_NEW_SMALL_INT(common_hal_espidf_get_reserved_psram());
-}
-MP_DEFINE_CONST_FUN_OBJ_0(espidf_get_reserved_psram_obj, espidf_get_reserved_psram);
 
 STATIC const mp_rom_map_elem_t espidf_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_espidf) },
@@ -149,7 +151,6 @@ STATIC const mp_rom_map_elem_t espidf_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_erase_nvs), MP_ROM_PTR(&espidf_erase_nvs_obj)},
 
     { MP_ROM_QSTR(MP_QSTR_get_total_psram), MP_ROM_PTR(&espidf_get_total_psram_obj)},
-    { MP_ROM_QSTR(MP_QSTR_get_reserved_psram), MP_ROM_PTR(&espidf_get_reserved_psram_obj)},
     { MP_ROM_QSTR(MP_QSTR_IDFError), MP_ROM_PTR(&mp_type_espidf_IDFError) },
     { MP_ROM_QSTR(MP_QSTR_MemoryError),      MP_ROM_PTR(&mp_type_espidf_MemoryError) },
 };
@@ -160,3 +161,5 @@ const mp_obj_module_t espidf_module = {
     .base = { &mp_type_module },
     .globals = (mp_obj_dict_t *)&espidf_module_globals,
 };
+
+MP_REGISTER_MODULE(MP_QSTR_espidf, espidf_module);

@@ -38,7 +38,6 @@
 #include "supervisor/filesystem.h"
 #include "supervisor/port.h"
 #include "supervisor/shared/safe_mode.h"
-#include "supervisor/shared/translate/translate.h"
 
 #include "src/rp2040/hardware_structs/include/hardware/structs/sio.h"
 #include "src/rp2_common/hardware_sync/include/hardware/sync.h"
@@ -60,7 +59,7 @@ void common_hal_mcu_disable_interrupts(void) {
 
 void common_hal_mcu_enable_interrupts(void) {
     if (nesting_count == 0) {
-        // reset_into_safe_mode(LOCKING_ERROR);
+        // reset_into_safe_mode(SAFE_MODE_INTERRUPT_ERROR);
     }
     nesting_count--;
     if (nesting_count > 0) {
@@ -79,7 +78,7 @@ void common_hal_mcu_on_next_reset(mcu_runmode_t runmode) {
             next_reset_to_bootloader = true;
             break;
         case RUNMODE_SAFE_MODE:
-            safe_mode_on_next_reset(PROGRAMMATIC_SAFE_MODE);
+            safe_mode_on_next_reset(SAFE_MODE_PROGRAMMATIC);
             break;
         default:
             break;

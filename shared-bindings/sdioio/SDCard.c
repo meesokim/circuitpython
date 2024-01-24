@@ -38,7 +38,6 @@
 #include "py/mperrno.h"
 #include "py/objproperty.h"
 #include "py/runtime.h"
-#include "supervisor/shared/translate/translate.h"
 
 //| class SDCard:
 //|     """SD Card Block Interface with SDIO
@@ -84,8 +83,7 @@
 //|         ...
 
 STATIC mp_obj_t sdioio_sdcard_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *all_args) {
-    sdioio_sdcard_obj_t *self = m_new_obj(sdioio_sdcard_obj_t);
-    self->base.type = &sdioio_SDCard_type;
+    sdioio_sdcard_obj_t *self = mp_obj_malloc(sdioio_sdcard_obj_t, &sdioio_SDCard_type);
     enum { ARG_clock, ARG_command, ARG_data, ARG_frequency, NUM_ARGS };
     static const mp_arg_t allowed_args[] = {
         { MP_QSTR_clock, MP_ARG_REQUIRED | MP_ARG_KW_ONLY | MP_ARG_OBJ },
@@ -160,7 +158,6 @@ STATIC mp_obj_t sdioio_sdcard_count(mp_obj_t self_in) {
 MP_DEFINE_CONST_FUN_OBJ_1(sdioio_sdcard_count_obj, sdioio_sdcard_count);
 
 //|     def readblocks(self, start_block: int, buf: WriteableBuffer) -> None:
-//|
 //|         """Read one or more blocks from the card
 //|
 //|         :param int start_block: The block to start reading from
@@ -182,7 +179,6 @@ STATIC mp_obj_t sdioio_sdcard_readblocks(mp_obj_t self_in, mp_obj_t start_block_
 MP_DEFINE_CONST_FUN_OBJ_3(sdioio_sdcard_readblocks_obj, sdioio_sdcard_readblocks);
 
 //|     def writeblocks(self, start_block: int, buf: ReadableBuffer) -> None:
-//|
 //|         """Write one or more blocks to the card
 //|
 //|         :param int start_block: The block to start writing from
@@ -271,9 +267,10 @@ STATIC const mp_rom_map_elem_t sdioio_sdcard_locals_dict_table[] = {
 };
 STATIC MP_DEFINE_CONST_DICT(sdioio_sdcard_locals_dict, sdioio_sdcard_locals_dict_table);
 
-const mp_obj_type_t sdioio_SDCard_type = {
-    { &mp_type_type },
-    .name = MP_QSTR_SDCard,
-    .make_new = sdioio_sdcard_make_new,
-    .locals_dict = (mp_obj_dict_t *)&sdioio_sdcard_locals_dict,
-};
+MP_DEFINE_CONST_OBJ_TYPE(
+    sdioio_SDCard_type,
+    MP_QSTR_SDCard,
+    MP_TYPE_FLAG_HAS_SPECIAL_ACCESSORS,
+    make_new, sdioio_sdcard_make_new,
+    locals_dict, &sdioio_sdcard_locals_dict
+    );

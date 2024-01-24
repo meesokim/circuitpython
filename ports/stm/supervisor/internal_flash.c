@@ -215,7 +215,7 @@ void port_internal_flash_flush(void) {
     EraseInitStruct.NbSectors = 1;
     #endif
     if (sector_size > sizeof(_flash_cache) || sector_start_addr == 0xffffffff) {
-        reset_into_safe_mode(FLASH_WRITE_FAIL);
+        reset_into_safe_mode(SAFE_MODE_FLASH_WRITE_FAIL);
     }
 
     // Skip if data is the same
@@ -228,7 +228,7 @@ void port_internal_flash_flush(void) {
         if (HAL_FLASHEx_Erase(&EraseInitStruct, &SectorError) != HAL_OK) {
             // error occurred during sector erase
             HAL_FLASH_Lock(); // lock the flash
-            reset_into_safe_mode(FLASH_WRITE_FAIL);
+            reset_into_safe_mode(SAFE_MODE_FLASH_WRITE_FAIL);
         }
 
         uint32_t *cache_addr = (uint32_t *)_flash_cache;
@@ -240,7 +240,7 @@ void port_internal_flash_flush(void) {
                 (uint32_t)cache_addr) != HAL_OK) {
                 // error occurred during flash write
                 HAL_FLASH_Lock(); // lock the flash
-                reset_into_safe_mode(FLASH_WRITE_FAIL);
+                reset_into_safe_mode(SAFE_MODE_FLASH_WRITE_FAIL);
             }
             // RAM memory is by word (4 byte), but flash memory is by byte
             cache_addr += 8;
@@ -253,7 +253,7 @@ void port_internal_flash_flush(void) {
                 *(uint64_t *)cache_addr) != HAL_OK) {
                 // error occurred during flash write
                 HAL_FLASH_Lock(); // lock the flash
-                reset_into_safe_mode(FLASH_WRITE_FAIL);
+                reset_into_safe_mode(SAFE_MODE_FLASH_WRITE_FAIL);
             }
             // RAM memory is by word (4 byte), but flash memory is by byte
             cache_addr += 2;
@@ -267,7 +267,7 @@ void port_internal_flash_flush(void) {
                 (uint64_t)*cache_addr) != HAL_OK) {
                 // error occurred during flash write
                 HAL_FLASH_Lock(); // lock the flash
-                reset_into_safe_mode(FLASH_WRITE_FAIL);
+                reset_into_safe_mode(SAFE_MODE_FLASH_WRITE_FAIL);
             }
             // RAM memory is by word (4 byte), but flash memory is by byte
             cache_addr += 1;
@@ -302,10 +302,9 @@ mp_uint_t supervisor_flash_read_blocks(uint8_t *dest, uint32_t block, uint32_t n
     uint32_t sector_start_addr;
     flash_get_sector_info(src, &sector_start_addr, &sector_size);
     // Count how many blocks are left in the sector
-    uint32_t count = (sector_size - (src - sector_start_addr)) / FILESYSTEM_BLOCK_SIZE;
-    count = MIN(num_blocks, count);
+    uint32_t blocks_left_in_sector = (sector_size - (src - sector_start_addr)) / FILESYSTEM_BLOCK_SIZE;
 
-    if (count < num_blocks && _cache_flash_addr == sector_start_addr) {
+    if (num_blocks <= blocks_left_in_sector && _cache_flash_addr == sector_start_addr) {
         // Read is contained in the cache, so just read cache
         memcpy(dest, (_flash_cache + (src - sector_start_addr)), FILESYSTEM_BLOCK_SIZE * num_blocks);
     } else {
@@ -335,7 +334,7 @@ mp_uint_t supervisor_flash_write_blocks(const uint8_t *src, uint32_t block_num, 
 
         // Fail for any sector outside what's supported by the cache
         if (sector_size > sizeof(_flash_cache)) {
-            reset_into_safe_mode(FLASH_WRITE_FAIL);
+            reset_into_safe_mode(SAFE_MODE_FLASH_WRITE_FAIL);
         }
 
         // Find how many blocks are left in the sector

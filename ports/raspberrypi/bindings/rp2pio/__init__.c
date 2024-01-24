@@ -38,6 +38,7 @@
 //|     Learn guide <https://learn.adafruit.com/intro-to-rp2040-pio-with-circuitpython>`_.
 //|
 //| """
+//|
 
 //| def pins_are_sequential(pins: List[microcontroller.Pin]) -> bool:
 //|     """Return True if the pins have sequential GPIO numbers, False otherwise"""
@@ -71,4 +72,4 @@ const mp_obj_module_t rp2pio_module = {
     .globals = (mp_obj_dict_t *)&rp2pio_module_globals,
 };
 
-MP_REGISTER_MODULE(MP_QSTR_rp2pio, rp2pio_module, CIRCUITPY_RP2PIO);
+MP_REGISTER_MODULE(MP_QSTR_rp2pio, rp2pio_module);

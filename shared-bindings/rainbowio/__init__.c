@@ -33,7 +33,8 @@
 //|
 //| def colorwheel(n: float) -> int:
 //|     """C implementation of the common colorwheel() function found in many examples.
-//|     Returns the colorwheel RGB value as an integer value for n (usable in neopixel and dotstar)."""
+//|     Returns the colorwheel RGB value as an integer value for n (usable in neopixel and dotstar).
+//|     """
 //|     ...
 //|
 STATIC mp_obj_t rainbowio_colorwheel(mp_obj_t n) {
@@ -54,4 +55,4 @@ const mp_obj_module_t rainbowio_module = {
     .globals = (mp_obj_dict_t *)&rainbowio_module_globals,
 };
 
-MP_REGISTER_MODULE(MP_QSTR_rainbowio, rainbowio_module, CIRCUITPY_RAINBOWIO);
+MP_REGISTER_MODULE(MP_QSTR_rainbowio, rainbowio_module);

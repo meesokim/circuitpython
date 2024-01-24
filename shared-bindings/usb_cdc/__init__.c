@@ -31,9 +31,6 @@
 
 #include "shared-bindings/usb_cdc/__init__.h"
 #include "shared-bindings/usb_cdc/Serial.h"
-#include "supervisor/shared/translate/translate.h"
-
-#include "py/runtime.h"
 
 //| """USB CDC Serial streams
 //|
@@ -62,6 +59,7 @@
 //| """A `Serial` object that can be used to send and receive binary data to and from
 //| the host.
 //| Note that `data` is *disabled* by default. ``data`` is ``None`` if disabled."""
+//|
 
 //| def disable() -> None:
 //|     """Do not present any USB CDC device to the host.
@@ -71,7 +69,7 @@
 //|
 STATIC mp_obj_t usb_cdc_disable(void) {
     if (!common_hal_usb_cdc_disable()) {
-        mp_raise_RuntimeError(translate("Cannot change USB devices now"));
+        mp_raise_RuntimeError(MP_ERROR_TEXT("Cannot change USB devices now"));
     }
     return mp_const_none;
 }
@@ -102,7 +100,7 @@ STATIC mp_obj_t usb_cdc_enable(size_t n_args, const mp_obj_t *pos_args, mp_map_t
     mp_arg_parse_all(n_args, pos_args, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
 
     if (!common_hal_usb_cdc_enable(args[ARG_console].u_bool, args[ARG_data].u_bool)) {
-        mp_raise_RuntimeError(translate("Cannot change USB devices now"));
+        mp_raise_RuntimeError(MP_ERROR_TEXT("Cannot change USB devices now"));
     }
     return mp_const_none;
 }
@@ -141,4 +139,4 @@ void usb_cdc_set_data(mp_obj_t serial_obj) {
     set_module_dict_entry(MP_ROM_QSTR(MP_QSTR_data), serial_obj);
 }
 
-MP_REGISTER_MODULE(MP_QSTR_usb_cdc, usb_cdc_module, CIRCUITPY_USB_CDC);
+MP_REGISTER_MODULE(MP_QSTR_usb_cdc, usb_cdc_module);

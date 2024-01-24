@@ -56,10 +56,6 @@ Specifically useful documentation when starting out:
 - `CircuitPython Essentials <https://learn.adafruit.com/circuitpython-essentials>`__
 - `Example Code <https://github.com/adafruit/Adafruit_Learning_System_Guides/tree/master/CircuitPython_Essentials>`__
 
-Code Search
-------------
-GitHub doesn't currently support code search on forks. Therefore, CircuitPython doesn't have code search through GitHub because it is a fork of MicroPython. Luckily, `SourceGraph <https://sourcegraph.com/github.com/adafruit/circuitpython>`_ has free code search for public repos like CircuitPython. So, visit `sourcegraph.com/github.com/adafruit/circuitpython <https://sourcegraph.com/github.com/adafruit/circuitpython>`_ to search the CircuitPython codebase online.
-
 Contributing
 ------------
 
@@ -133,11 +129,23 @@ Behavior
       ``code.py`` **in the REPL anymore, as the REPL is a fresh vm.** CircuitPython's goal for this
       change includes reducing confusion about pins and memory being used.
    -  After the main code is finished the REPL can be entered by pressing any key.
+      - If the file ``repl.py`` exists, it is executed before the REPL Prompt is shown
+      - In safe mode this functionality is disabled, to ensure the REPL Prompt can always be reached
    -  Autoreload state will be maintained across reload.
 
 -  Adds a safe mode that does not run user code after a hard crash or brown out. This makes it
    possible to fix code that causes nasty crashes by making it available through mass storage after
    the crash. A reset (the button) is needed after it's fixed to get back into normal mode.
+-  Safe mode may be handled programmatically by providing a ``safemode.py``.
+   ``safemode.py`` is run if the board has reset due to entering safe mode, unless the safe mode
+   initiated by the user by pressing button(s).
+   USB is not available so nothing can be printed.
+   ``safemode.py`` can determine why the safe mode occurred
+   using ``supervisor.runtime.safe_mode_reason``, and take appropriate action. For instance,
+   if a hard crash occurred, ``safemode.py`` may do a ``microcontroller.reset()``
+   to automatically restart despite the crash.
+   If the battery is low, but is being charged, ``safemode.py`` may put the board in deep sleep
+   for a while. Or it may simply reset, and have ``code.py`` check the voltage and do the sleep.
 -  RGB status LED indicating CircuitPython state.
    - One green flash - code completed without error.
    - Two red flashes - code ended due to an exception.
@@ -145,9 +153,9 @@ Behavior
 -  Re-runs ``code.py`` or other main file after file system writes by a workflow. (Disable with
    ``supervisor.disable_autoreload()``)
 -  Autoreload is disabled while the REPL is active.
--  Main is one of these: ``code.txt``, ``code.py``, ``main.py``,
-   ``main.txt``
--  Boot is one of these: ``boot.py``, ``boot.txt``
+-  ``code.py`` may also be named ``code.txt``, ``main.py``, or ``main.txt``.
+-  ``boot.py`` may also be named ``boot.txt``.
+-  ``safemode.py`` may also be named ``safemode.txt``.
 
 API
 ~~~
@@ -225,6 +233,7 @@ litex             alpha
 mimxrt10xx        alpha
 nrf               stable
 raspberrypi       stable
+silabs (efr32)    alpha
 stm               ``F4`` stable | ``others`` beta
 unix              alpha
 ================  ============================================================

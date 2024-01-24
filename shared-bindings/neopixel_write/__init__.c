@@ -30,7 +30,6 @@
 #include "py/runtime.h"
 #include "shared-bindings/digitalio/DigitalInOut.h"
 #include "shared-bindings/util.h"
-#include "supervisor/shared/translate/translate.h"
 
 // RGB LED timing information:
 
@@ -109,7 +108,8 @@ STATIC void check_for_deinit(digitalio_digitalinout_obj_t *self) {
 //|     """Write buf out on the given DigitalInOut.
 //|
 //|     :param ~digitalio.DigitalInOut digitalinout: the DigitalInOut to output with
-//|     :param ~circuitpython_typing.ReadableBuffer buf: The bytes to clock out. No assumption is made about color order"""
+//|     :param ~circuitpython_typing.ReadableBuffer buf: The bytes to clock out. No assumption is made about color order
+//|     """
 //|     ...
 //|
 STATIC mp_obj_t neopixel_write_neopixel_write_(mp_obj_t digitalinout_obj, mp_obj_t buf) {
@@ -139,4 +139,4 @@ const mp_obj_module_t neopixel_write_module = {
     .globals = (mp_obj_dict_t *)&neopixel_write_module_globals,
 };
 
-MP_REGISTER_MODULE(MP_QSTR_neopixel_write, neopixel_write_module, CIRCUITPY_NEOPIXEL_WRITE);
+MP_REGISTER_MODULE(MP_QSTR_neopixel_write, neopixel_write_module);

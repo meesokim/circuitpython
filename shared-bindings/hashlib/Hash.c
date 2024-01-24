@@ -49,7 +49,8 @@ MP_PROPERTY_GETTER(hashlib_hash_digest_size_obj, (mp_obj_t)&hashlib_hash_digest_
 //|     def update(self, data: ReadableBuffer) -> None:
 //|         """Update the hash with the given bytes.
 //|
-//|         :param ~circuitpython_typing.ReadableBuffer data: Update the hash from data in this buffer"""
+//|         :param ~circuitpython_typing.ReadableBuffer data: Update the hash from data in this buffer
+//|         """
 //|         ...
 mp_obj_t hashlib_hash_update(mp_obj_t self_in, mp_obj_t buf_in) {
     mp_check_self(mp_obj_is_type(self_in, &hashlib_hash_type));
@@ -88,8 +89,9 @@ STATIC const mp_rom_map_elem_t hashlib_hash_locals_dict_table[] = {
 
 STATIC MP_DEFINE_CONST_DICT(hashlib_hash_locals_dict, hashlib_hash_locals_dict_table);
 
-const mp_obj_type_t hashlib_hash_type = {
-    { &mp_type_type },
-    .name = MP_QSTR_Hash,
-    .locals_dict = (mp_obj_dict_t *)&hashlib_hash_locals_dict,
-};
+MP_DEFINE_CONST_OBJ_TYPE(
+    hashlib_hash_type,
+    MP_QSTR_Hash,
+    MP_TYPE_FLAG_HAS_SPECIAL_ACCESSORS,
+    locals_dict, &hashlib_hash_locals_dict
+    );

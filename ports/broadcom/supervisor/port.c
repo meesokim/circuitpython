@@ -32,7 +32,7 @@
 
 #include "genhdr/mpversion.h"
 
-// #include "common-hal/rtc/RTC.h"
+#include "common-hal/rtc/RTC.h"
 #include "common-hal/busio/I2C.h"
 #include "common-hal/busio/SPI.h"
 #include "common-hal/busio/UART.h"
@@ -78,10 +78,10 @@ safe_mode_t port_init(void) {
     // Check brownout.
 
     if (board_requests_safe_mode()) {
-        return USER_SAFE_MODE;
+        return SAFE_MODE_USER;
     }
 
-    return NO_SAFE_MODE;
+    return SAFE_MODE_NONE;
 }
 
 void reset_port(void) {
@@ -123,31 +123,15 @@ void reset_cpu(void) {
     }
 }
 
-bool port_has_fixed_stack(void) {
-    #ifdef __aarch64__
-    return true;
-    #else
-    return false;
-    #endif
-}
-
 // From the linker script
 extern uint32_t __bss_end;
 extern uint32_t _ld_ram_end;
 uint32_t *port_stack_get_limit(void) {
-    #ifdef __aarch64__
     return (uint32_t *)0x4;
-    #else
-    return &__bss_end;
-    #endif
 }
 
 uint32_t *port_stack_get_top(void) {
-    #ifdef __aarch64__
-    return (uint32_t *)0x80000;
-    #else
-    return &_ld_ram_end;
-    #endif
+    return (uint32_t *)0x100000;
 }
 
 uint32_t *port_heap_get_bottom(void) {

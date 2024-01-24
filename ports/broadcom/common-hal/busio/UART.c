@@ -124,7 +124,7 @@ void pl011_IRQHandler(uint8_t index) {
     // Clear the interrupt in case we weren't able to clear it by emptying the
     // FIFO. (This won't clear the FIFO.)
     ARM_UART_PL011_Type *pl011 = uart[index];
-    pl011->ICR = UART0_ICR_RXIC_Msk;
+    pl011->ICR = ARM_UART_PL011_ICR_RXIC_Msk;
 }
 
 void UART0_IRQHandler(void) {
@@ -166,7 +166,7 @@ void common_hal_busio_uart_construct(busio_uart_obj_t *self,
     mp_arg_validate_int_min(receiver_buffer_size, 1, MP_QSTR_receiver_buffer_size);
 
     if ((rs485_dir != NULL) || (rs485_invert)) {
-        mp_raise_NotImplementedError(translate("RS485 Not yet supported on this device"));
+        mp_raise_NotImplementedError(MP_ERROR_TEXT("RS485 Not yet supported on this device"));
     }
 
     size_t instance_index = NUM_UART;
@@ -212,13 +212,7 @@ void common_hal_busio_uart_construct(busio_uart_obj_t *self,
         if (receiver_buffer != NULL) {
             ringbuf_init(&self->ringbuf, receiver_buffer, receiver_buffer_size);
         } else {
-            // Initially allocate the UART's buffer in the long-lived part of the
-            // heap. UARTs are generally long-lived objects, but the "make long-
-            // lived" machinery is incapable of moving internal pointers like
-            // self->buffer, so do it manually.  (However, as long as internal
-            // pointers like this are NOT moved, allocating the buffer
-            // in the long-lived pool is not strictly necessary)
-            if (!ringbuf_alloc(&self->ringbuf, receiver_buffer_size, true)) {
+            if (!ringbuf_alloc(&self->ringbuf, receiver_buffer_size)) {
                 m_malloc_fail(receiver_buffer_size);
             }
         }
@@ -258,31 +252,31 @@ void common_hal_busio_uart_construct(busio_uart_obj_t *self,
 
         common_hal_busio_uart_set_baudrate(self, baudrate);
 
-        uint32_t line_control = UART0_LCR_H_FEN_Msk;
-        line_control |= (bits - 5) << UART0_LCR_H_WLEN_Pos;
+        uint32_t line_control = ARM_UART_PL011_LCR_H_FEN_Msk;
+        line_control |= (bits - 5) << ARM_UART_PL011_LCR_H_WLEN_Pos;
         if (stop == 2) {
-            line_control |= UART0_LCR_H_STP2_Msk;
+            line_control |= ARM_UART_PL011_LCR_H_STP2_Msk;
         }
         if (parity != BUSIO_UART_PARITY_NONE) {
-            line_control |= UART0_LCR_H_PEN_Msk;
+            line_control |= ARM_UART_PL011_LCR_H_PEN_Msk;
         }
         if (parity == BUSIO_UART_PARITY_EVEN) {
-            line_control |= UART0_LCR_H_EPS_Msk;
+            line_control |= ARM_UART_PL011_LCR_H_EPS_Msk;
         }
         pl011->LCR_H = line_control;
 
-        uint32_t control = UART0_CR_UARTEN_Msk;
+        uint32_t control = ARM_UART_PL011_CR_UARTEN_Msk;
         if (tx != NULL) {
-            control |= UART0_CR_TXE_Msk;
+            control |= ARM_UART_PL011_CR_TXE_Msk;
         }
         if (rx != NULL) {
-            control |= UART0_CR_RXE_Msk;
+            control |= ARM_UART_PL011_CR_RXE_Msk;
         }
         if (cts != NULL) {
-            control |= UART0_CR_CTSEN_Msk;
+            control |= ARM_UART_PL011_CR_CTSEN_Msk;
         }
         if (rts != NULL) {
-            control |= UART0_CR_RTSEN_Msk;
+            control |= ARM_UART_PL011_CR_RTSEN_Msk;
         }
         pl011->CR = control;
     }
@@ -352,7 +346,7 @@ void common_hal_busio_uart_deinit(busio_uart_obj_t *self) {
 // Write characters.
 size_t common_hal_busio_uart_write(busio_uart_obj_t *self, const uint8_t *data, size_t len, int *errcode) {
     if (self->tx_pin == NULL) {
-        mp_raise_ValueError(translate("No TX pin"));
+        mp_raise_ValueError_varg(MP_ERROR_TEXT("No %q pin"), MP_QSTR_tx);
     }
 
     COMPLETE_MEMORY_READS;
@@ -400,7 +394,7 @@ STATIC void enable_interrupt(busio_uart_obj_t *self) {
 // Read characters.
 size_t common_hal_busio_uart_read(busio_uart_obj_t *self, uint8_t *data, size_t len, int *errcode) {
     if (self->rx_pin == NULL) {
-        mp_raise_ValueError(translate("No RX pin"));
+        mp_raise_ValueError_varg(MP_ERROR_TEXT("No %q pin"), MP_QSTR_rx);
     }
 
     if (len == 0) {
@@ -460,7 +454,7 @@ uint32_t common_hal_busio_uart_get_baudrate(busio_uart_obj_t *self) {
 
 void common_hal_busio_uart_set_baudrate(busio_uart_obj_t *self, uint32_t baudrate) {
     if (self->uart_id == 1) {
-        uint32_t source_clock = vcmailbox_get_clock_rate_measured(VCMAILBOX_CLOCK_CORE);
+        uint32_t source_clock = vcmailbox_get_clock_rate(VCMAILBOX_CLOCK_CORE);
         UART1->BAUD = ((source_clock / (baudrate * 8)) - 1);
     } else {
         ARM_UART_PL011_Type *pl011 = uart[self->uart_id];

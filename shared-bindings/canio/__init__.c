@@ -27,7 +27,10 @@
 //| """CAN bus access
 //|
 //| The `canio` module contains low level classes to support the CAN bus
-//| protocol.
+//| protocol on microcontrollers that have built-in CAN peripherals.
+//|
+//| Boards like the Adafruit RP2040 CAN Bus Feather that use an MCP2515 or
+//| compatible chip use the `mcp2515:adafruit_mcp2515` module instead.
 //|
 //| CAN and Listener classes change hardware state and should be deinitialized when they
 //| are no longer needed if the program continues after use. To do so, either
@@ -58,6 +61,7 @@
 //| For more information on working with this module, refer to
 //| `this Learn Guide on using it <https://learn.adafruit.com/using-canio-circuitpython>`_.
 //| """
+//|
 
 #include "py/obj.h"
 #include "py/enum.h"
@@ -127,4 +131,4 @@ const mp_obj_module_t canio_module = {
     .globals = (mp_obj_dict_t *)&canio_module_globals,
 };
 
-MP_REGISTER_MODULE(MP_QSTR_canio, canio_module, CIRCUITPY_CANIO);
+MP_REGISTER_MODULE(MP_QSTR_canio, canio_module);

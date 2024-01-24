@@ -37,6 +37,7 @@
 //| |see_cpython_module| :mod:`cpython:traceback`.
 //| """
 //| ...
+//|
 
 STATIC void traceback_exception_common(bool is_print_exception, mp_print_t *print, size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
     enum { ARG_exc, ARG_value, ARG_tb, ARG_limit, ARG_file, ARG_chain };
@@ -58,7 +59,9 @@ STATIC void traceback_exception_common(bool is_print_exception, mp_print_t *prin
     }
     mp_obj_t tb_obj = args[ARG_tb].u_obj;
     mp_obj_t limit_obj = args[ARG_limit].u_obj;
+    #if MICROPY_CPYTHON_EXCEPTION_CHAIN
     bool chain = args[ARG_chain].u_bool;
+    #endif
 
     if (args[ARG_file].u_obj != mp_const_none) {
         if (!is_print_exception) {
@@ -74,12 +77,12 @@ STATIC void traceback_exception_common(bool is_print_exception, mp_print_t *prin
         print->data = MP_OBJ_TO_PTR(args[ARG_file].u_obj);
         print->print_strn = mp_stream_write_adaptor;
         #else
-        mp_raise_NotImplementedError(translate("file write is not available"));
+        mp_raise_NotImplementedError(MP_ERROR_TEXT("file write is not available"));
         #endif
     }
 
     if (!mp_obj_is_exception_instance(value)) {
-        mp_raise_TypeError(translate("invalid exception"));
+        mp_raise_TypeError(MP_ERROR_TEXT("invalid exception"));
     }
 
     mp_int_t limit = 0;
@@ -155,7 +158,7 @@ STATIC mp_obj_t traceback_format_exception(size_t n_args, const mp_obj_t *pos_ar
     vstr_t vstr;
     vstr_init_print(&vstr, 0, &print);
     traceback_exception_common(false, &print, n_args, pos_args, kw_args);
-    mp_obj_t output = mp_obj_new_str_from_vstr(&mp_type_str, &vstr);
+    mp_obj_t output = mp_obj_new_str_from_vstr(&vstr);
     return mp_obj_new_list(1, &output);
 }
 
@@ -215,4 +218,4 @@ const mp_obj_module_t traceback_module = {
     .globals = (mp_obj_dict_t *)&traceback_module_globals,
 };
 
-MP_REGISTER_MODULE(MP_QSTR_traceback, traceback_module, CIRCUITPY_TRACEBACK);
+MP_REGISTER_MODULE(MP_QSTR_traceback, traceback_module);

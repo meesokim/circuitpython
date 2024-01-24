@@ -211,7 +211,7 @@ safe_mode_t port_init(void) {
     // Turn off SysTick
     SysTick->CTRL = 0;
 
-    return NO_SAFE_MODE;
+    return SAFE_MODE_NONE;
 }
 
 void HAL_Delay(uint32_t delay_ms) {
@@ -330,15 +330,15 @@ uint32_t *port_heap_get_bottom(void) {
 }
 
 uint32_t *port_heap_get_top(void) {
-    return &_ld_heap_end;
-}
-
-bool port_has_fixed_stack(void) {
-    return false;
+    return port_stack_get_limit();
 }
 
 uint32_t *port_stack_get_limit(void) {
-    return &_ld_stack_bottom;
+    #pragma GCC diagnostic push
+
+    #pragma GCC diagnostic ignored "-Warray-bounds"
+    return port_stack_get_top() - (CIRCUITPY_DEFAULT_STACK_SIZE + CIRCUITPY_EXCEPTION_STACK_SIZE) / sizeof(uint32_t);
+    #pragma GCC diagnostic pop
 }
 
 uint32_t *port_stack_get_top(void) {
@@ -357,35 +357,35 @@ uint32_t port_get_saved_word(void) {
 }
 
 __attribute__((used)) void MemManage_Handler(void) {
-    reset_into_safe_mode(MEM_MANAGE);
+    reset_into_safe_mode(SAFE_MODE_HARD_FAULT);
     while (true) {
         asm ("nop;");
     }
 }
 
 __attribute__((used)) void BusFault_Handler(void) {
-    reset_into_safe_mode(MEM_MANAGE);
+    reset_into_safe_mode(SAFE_MODE_HARD_FAULT);
     while (true) {
         asm ("nop;");
     }
 }
 
 __attribute__((used)) void UsageFault_Handler(void) {
-    reset_into_safe_mode(MEM_MANAGE);
+    reset_into_safe_mode(SAFE_MODE_HARD_FAULT);
     while (true) {
         asm ("nop;");
     }
 }
 
 __attribute__((used)) void HardFault_Handler(void) {
-    reset_into_safe_mode(HARD_CRASH);
+    reset_into_safe_mode(SAFE_MODE_HARD_FAULT);
     while (true) {
         asm ("nop;");
     }
 }
 
 uint64_t port_get_raw_ticks(uint8_t *subticks) {
-    return stm32_peripherals_rtc_raw_ticks(subticks);
+    return stm32_peripherals_rtc_monotonic_ticks(subticks);
 }
 
 // Enable 1/1024 second tick.
